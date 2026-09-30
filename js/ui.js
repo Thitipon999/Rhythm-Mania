@@ -23,7 +23,7 @@ function draw(){if(!CH.length){app.innerHTML='<section class="card">ยังไ
  sel.c=Math.min(sel.c,CH.length-1);const ch=CH[sel.c];sel.d=Math.min(sel.d,ch.diffs.length-1);const df=ch.diffs[sel.d],b=getSet().keys[df.keys]||DEF_KEYS[df.keys]||[];
  app.innerHTML=`<div class="wrap"><div class="board"><div class="hd"><span>FLIGHT</span><span>SONG</span><span>KEYS</span></div>${CH.map((c,i)=>`<div class="row ${i==sel.c?'on':''}" data-c="${i}"><span>RM${String(i+1).padStart(3,'0')}</span><span>${H(c.title)}<br><small>${H(c.artist)} · ${c.bpm} BPM</small></span><span>${kl(c)}</span></div>`).join('')}</div>
  <div class="card" style="margin:0"><h2 style="margin:0">${H(ch.title)}</h2><small>${H(ch.artist)} · ${ch.bpm} BPM</small><div class="diffs">${ch.diffs.map((d,i)=>`<button data-d="${i}" class="${i==sel.d?'on':'alt'}">${H(d.name)} ${d.level}<br><small>${d.keys}K</small></button>`).join('')}</div>
- <p>ใช้ <b>${df.keys} ปุ่ม</b>: ${b.map(k=>`<kbd>${H(k.toUpperCase())}</kbd>`).join(' ')||'—'} <small>(หรือแตะเลนบนจอมือถือ)</small></p>
+ <p>ใช้ <b>${df.keys} ปุ่ม</b>: ${b.map(k=>`<kbd>${H(k.toUpperCase())}</kbd>`).join(' ')||'—'} <small>(มือถือ: แตะแผงปุ่มด้านล่างจอ)</small></p>
  <button id="go" style="width:100%;font-size:20px">▶ BOARDING — เริ่มเล่น</button><h3>Leaderboard · ${H(df.name)} <a href="#" id="rf" style="font-size:14px;color:var(--amber)">🔄</a></h3><div id="bd">กำลังโหลด...</div></div></div>`;
  app.querySelectorAll('[data-c]').forEach(e=>e.onclick=()=>{sel.c=+e.dataset.c;sel.d=0;draw()});app.querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{sel.d=+e.dataset.d;draw()});
  $('#go').onclick=()=>play(ch,df);const lb=async()=>{try{const bd=await DB.board(ch.id,df.id);if($('#bd'))$('#bd').innerHTML=bd.length?`<table>${bd.map((s,i)=>`<tr><td>${i+1}</td><td>${H(s.user)}</td><td>${s.score.toLocaleString()}</td><td>${s.rank}</td></tr>`).join('')}</table>`:'ยังไม่มีใครขึ้นบอร์ด — เป็นคนแรกเลย'}catch(e){$('#bd').textContent=e.message}};
@@ -34,15 +34,15 @@ function result(ch,df,r){app.innerHTML=`<section class="card res"><small>${H(ch.
  $('#rt').onclick=()=>play(ch,df);$('#bk').onclick=()=>menu(true)}
 function settings(K=4){const s=getSet(),b=s.keys[K]||DEF_KEYS[K],dup=new Set(b).size<b.length;
  openModal(`<h2>Settings</h2><label>ความเร็วโน้ต</label><div class="diffs">${[1,2,3,4,5,6].map(n=>`<button data-sp="${n}" class="${s.speed==n?'on':'alt'}">x${n}</button>`).join('')}</div>
- <h3>Key Binding (คีย์บอร์ด)</h3><p>จำนวนปุ่มถูกกำหนดโดยเพลงที่เลือก ตั้งปุ่มแยกตามจำนวนปุ่มของเพลงได้ที่นี่</p><div class="diffs">${Object.keys(DEF_KEYS).map(n=>`<button data-k="${n}" class="${n==K?'on':'alt'}">${n}K</button>`).join('')}</div>
+ <h3>แผงปุ่มสัมผัส (มือถือ)</h3><p>ปุ่มใหญ่ด้านล่างจอ กดตรงไหนของคอลัมน์ก็ได้ ไม่ต้องเล็งที่เลน</p><div class="diffs">${[['auto','อัตโนมัติ'],['on','เปิด'],['off','ปิด']].map(([v,n])=>`<button data-pd="${v}" class="${(s.pad===undefined?'auto':s.pad?'on':'off')==v?'on':'alt'}">${n}</button>`).join('')}</div><h3>Key Binding (คีย์บอร์ด)</h3><p>จำนวนปุ่มถูกกำหนดโดยเพลงที่เลือก ตั้งปุ่มแยกตามจำนวนปุ่มของเพลงได้ที่นี่</p><div class="diffs">${Object.keys(DEF_KEYS).map(n=>`<button data-k="${n}" class="${n==K?'on':'alt'}">${n}K</button>`).join('')}</div>
  <label>คลิกช่องแล้วกดปุ่มที่ต้องการ (เลน ซ้าย→ขวา)</label><div class="grid">${b.map((k,i)=>`<input class="kb" data-i="${i}" value="${H(k)}" readonly>`).join('')}</div>${dup?'<p style="color:var(--red)">มีปุ่มซ้ำกัน</p>':''}
  <button class="alt" id="rk">คืนค่าเริ่มต้น ${K}K</button> <button onclick="closeModal()">เสร็จสิ้น</button>`);
- const M=$('#modal');M.querySelectorAll('[data-sp]').forEach(e=>e.onclick=()=>{s.speed=+e.dataset.sp;saveSet(s);settings(K)});M.querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>settings(+e.dataset.k));
+ const M=$('#modal');M.querySelectorAll('[data-sp]').forEach(e=>e.onclick=()=>{s.speed=+e.dataset.sp;saveSet(s);settings(K)});M.querySelectorAll('[data-pd]').forEach(e=>e.onclick=()=>{const v=e.dataset.pd;if(v=='auto')delete s.pad;else s.pad=v=='on';saveSet(s);settings(K)});M.querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>settings(+e.dataset.k));
  $('#rk').onclick=()=>{delete s.keys[K];saveSet(s);settings(K)};
  M.querySelectorAll('.kb').forEach(e=>e.onkeydown=ev=>{ev.preventDefault();if(ev.key=='Tab')return;const nb=b.slice();nb[+e.dataset.i]=ev.key==' '?'space':ev.key.toLowerCase();s.keys[K]=nb;saveSet(s);settings(K)})}
 function howto(){openModal(`<h2>✈ วิธีเล่น (สำหรับมือใหม่)</h2>
 <p><b>เป้าหมาย:</b> โน้ตจะตกลงมาตามเลน กดปุ่มของเลนนั้น <u>ตอนที่โน้ตถึงเส้นสีเหลือง</u> ให้ตรงจังหวะที่สุด</p>
-<p><b>ปุ่มบนคีย์บอร์ด:</b> เพลง 4 ปุ่มใช้ <kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> <kbd>K</kbd> (เปลี่ยนได้ใน Settings) · <b>มือถือ:</b> แตะเลนบนจอได้เลย ใช้หลายนิ้วพร้อมกันได้ (แนะนำหมุนจอแนวนอน)</p>
+<p><b>ปุ่มบนคีย์บอร์ด:</b> เพลง 4 ปุ่มใช้ <kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> <kbd>K</kbd> (เปลี่ยนได้ใน Settings) · <b>มือถือ:</b> มีแผงปุ่มใหญ่ด้านล่างจอ แตะปุ่มของเลนนั้นได้เลย (หรือแตะตรงไหนของคอลัมน์ก็ได้) ใช้หลายนิ้วพร้อมกันได้ (แนะนำหมุนจอแนวนอน)</p>
 <p><b>โน้ตกดค้าง (Hold):</b> โน้ตที่มีแท่งยาว ให้กดที่หัวโน้ตแล้ว <u>ค้างไว้จนสุดแท่ง</u> ถ้าปล่อยก่อนจะ BREAK และคอมโบขาด</p>
 <p><b>การตัดสิน:</b> PERFECT (แม่นสุด) › GREAT › GOOD › MISS (พลาด/ไม่กด → คอมโบขาด)</p>
 <p><b>คะแนน:</b> เต็ม 1,000,000 ยิ่งแม่นยิ่งสูง · เกรด S ≥95% · A ≥85% · B ≥70% · C ≥50%</p>
