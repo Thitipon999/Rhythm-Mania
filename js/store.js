@@ -29,4 +29,3 @@ const DB={remote:!!CONFIG.DB_URL,
  async submit(u,cid,did,r){const p=`scores/${cid}/${did}/${u}`,old=await this.get(p);
   if(!old||r.score>old.score)await this.put(p,{score:r.score,acc:r.acc,combo:r.max,rank:r.rank,ts:Date.now()});
   await this.put('stats/plays',(await this.get('stats/plays')||0)+1)}};
-
