@@ -55,5 +55,3 @@ const Game={
    for(const n of notes){if(n.t-t>200)break;if(!n.hit&&!n.dead&&t-n.t>130){n.dead=1;judge('M')}if(n.held&&t>=n.t+n.d){n.held=0;n.hit=2}}
    draw(t);if(t>endT)return finish(false);raf=requestAnimationFrame(loop)};
   loop()}};
-
-
